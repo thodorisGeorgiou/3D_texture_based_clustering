@@ -1,0 +1,62 @@
+#:General Settings
+
+#:photo path should not contain the suffix of the image (case of images created by ./datasetcreator put the path to the settings file for the building of the specific image)
+Photo_path:BrainWeb/t1_icbm_normal_1mm_pn9_rf20;
+
+#:which labels fromground truth to try and cluster
+MaskLabels:1,2,3;
+
+#:Photo name is the folder in which the results are going to be saved
+Photo_name:BrainWeb/t1_icbm_normal_1mm_pn9_rf20;
+
+#:the path to ground truth
+Labels_Path:BrainWeb/phantom_1.0mm_normal_crisp.rawb;
+
+#:Possible formats - raw (images created by datasetcreator), rawb (BrainWeb), img (IBSR, v2)
+Photo_format:rawb;
+
+#:File to write accuracies
+Results_file:BrainWeb/t1_icbm_normal_1mm_pn9_rf20_Performance;
+
+#:will loop from min to max
+number_of_min_clusters:3;
+number_of_max_clusters:3;
+
+number_of_threads:4;
+
+#:1 to use a method, 0 not to
+fos:1;
+glcm:0;
+glam:0;
+rlm:0;
+
+#:GLCM and RLM Settings
+step_x:1;
+step_y:1;
+step_z:1;
+
+
+#:GLAM Settings (Neighboring element radius)
+box_size_x:2;
+box_size_y:2;
+box_size_z:2;
+
+#:Feature calculator for both GLAM and GLCM (0 subset of 8 features, 1 all 15 features)
+feature_calculator:0;
+
+#:Special Settings
+rescale_features:1;
+
+#:Neighborhood radii, separate with comma different raddi to be used together. (x, y, z should alwas have the same number of radii)
+glcmx_radius:3;
+glcmy_radius:3;
+glcmz_radius:3;
+glamx_radius:10,16;
+glamy_radius:10,16;
+glamz_radius:10,16;
+rlmx_radius:8,15;
+rlmy_radius:8,15;
+rlmz_radius:8,15;
+fosx_radius:2;
+fosy_radius:2;
+fosz_radius:2;

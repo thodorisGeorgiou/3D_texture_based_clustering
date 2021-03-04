@@ -1,0 +1,236 @@
+
+- Install Opencv 2.4.12 (careful to download 2.4.12 and not the latest)
+	Follow instructions on "http://docs.opencv.org/2.4/doc/tutorials/introduction/linux_install/linux_install.html"
+	If do not use default install directory:
+		Keep the instalation directory (opencvInstallDir)
+		execute the following commands:
+			PKG_CONFIG_PATH=$PKG_CONFIG_PATH:opencvInstallDir/lib/pkgconfig
+			export PKG_CONFIG_PATH
+		
+		If you want the change to be permanent add the above commands to the .bash file (the exact name depends on the distribution i.e. .bashrc, .bash_profile etc.)
+
+		In the makefile, extracted from the Theodoros_Georgiou_Thesis.zip, change the OPENCV_INSTALL_PATH variable to the path in which you installed opencv (opencvInstallDir).
+
+- Building the code
+	You can have any executables you want, using the classes of this project. You just have to include <opencv2/opncv.hpp> and <opencv2/highgui/highgui.hpp> before including any of the classes of this project. If opencv and the header files in my_headers directory (included in the .zip file) are linked properly you can use the classes in any project.
+
+	If you want to use my makefile just add your executables path in the SOURCES2 variable (line 13 of makefile)
+	In this project there are two executables included. One (clusterTextures) that extracts features from an image, which go through filters, clusters the voxels using both K-Means and Fuzzy C-Means and finally computes Rand Index with given ground truth. The other executable (datasetcreator) creates an image with its ground truth from agar-agar and phantom building blocks.
+
+	Just execute the command "make all" and they will be compiled.
+
+
+How to use:
+	./clusterTextures settings.txt
+		should have exactly one argument, the settings file. (What each setting is, is explained in the example settings file given (settings.txt))
+		There are two images included in the directory for example execution. The settings file is set for the one from BrainWeb. One US image is also included. Change the settings accordingly in order to segment it. The settings used to create it (should be used as Photo_path (Photo_path:flowerSet/phallfl1537.txt;))
+
+	./datasetCreator dcsettings.txt
+		creates image and its ground truth from building blocks
+		needs exactly one argument, information on the settings to use in an example settings file provided (dcsettings.txt)
+
+Most Classes of the project (the rest are either settings classes or classes that are not properly tested)
+	-GLCM 3D
+		to use include "glcm3D.h"
+		public functions:
+			GLCM_3d(int x_rad, int y_rad, int z_rad, int x_step, int y_step, int z_step, int val_range, int n_threads, int f_calc)
+				Object Constructor.
+				x_rad: int, neighborhood radius in x direction
+				y_rad: int, neighborhood radius in y direction
+				z_rad: int, neighborhood radius in z direction
+				x_step: int, step to immediate neighbor in x direction
+				y_step: int, step to immediate neighbor in y direction
+				z_step: int, step to immediate neighbor in z direction
+				val_range: int, number of possible gray level values The algorithm will transform the data accordingly. Usually set to 64.
+				n_threads: int, number of threads to split the job
+				f_calc: int, control variable. if 1 calculates all 15 features per direction, if 0 calculates only a subset of 8.
+			void computeFeatures(cv::Mat *src, int dim[3], int *mask)
+				computes the features.
+				src: pointer to cv::Mat structure that contains the 3D block of data.
+				dim: int Array with length 3. every value holds the dimensions of the data (dim[0]: number of voxel in x direction, dim[1]: number of voxel in y direction, dim[2]: number of voxel in z direction)
+				mask: pointer to int array. Every cell of the array corresponds to a voxel. If the value is 1, the algorithm will compute features for this voxel, if 0 it will not. In order to compute features for all voxels, all values of the array should be 1. The array is one dimensional. The position of an example voxel (x, y, z) in this array can be computed as following. index = dim[0]*dim[1]*z + dim[0]*y + x.
+				The size of the array should be dim[0]*dim[1]*dim[2].
+			cv::Mat getFeatures()
+				returns a cv::Mat with features for all voxels decided by the mask. The cv::Mat is two dimensional, the rows are voxels and columns features.
+				The correspondence of row in thi matrix and voxel coordinates (x, y, z) are given with the same formula of the mask index (row = dim[0]*dim[1]*z + dim[0]*y + x)
+	-GLAM 3D
+		to use include "glcm3D.h"
+		public functions:
+			GLAM_3d(int x_rad, int y_rad, int z_rad, int x_box, int y_box, int z_box, int val_range, int n_threads, int f_calc)
+				Object Constructor.
+				x_rad: int, neighborhood radius in x direction
+				y_rad: int, neighborhood radius in y direction
+				z_rad: int, neighborhood radius in z direction
+				x_box: int, neighboring element radius in x direction
+				y_box: int, neighboring element radius in y direction
+				z_box: int, neighboring element radius in z direction
+				val_range: int, number of possible gray level values The algorithm will transform the data accordingly. Usually set to 64.
+				n_threads: int, number of threads to split the job
+				f_calc: int, control variable. if 1 calculates all 15 features per direction, if 0 calculates only a subset of 8.
+			void computeFeatures(cv::Mat *src, int dim[3], int *mask)
+				computes the features.
+				src: pointer to cv::Mat structure that contains the 3D block of data.
+				dim: int Array with length 3. every value holds the dimensions of the data (dim[0]: number of voxel in x direction, dim[1]: number of voxel in y direction, dim[2]: number of voxel in z direction)
+				mask: pointer to int array. Every cell of the array corresponds to a voxel. If the value is 1, the algorithm will compute features for this voxel, if 0 it will not. In order to compute features for all voxels, all values of the array should be 1. The array is one dimensional. The position of an example voxel (x, y, z) in this array can be computed as following. index = dim[0]*dim[1]*z + dim[0]*y + x.
+				The size of the array should be dim[0]*dim[1]*dim[2].
+			cv::Mat getFeatures()
+				returns a cv::Mat with features for all voxels decided by the mask. The cv::Mat is two dimensional, the rows are voxels and columns features.
+				The correspondence of row in thi matrix and voxel coordinates (x, y, z) are given with the same formula of the mask index (row = dim[0]*dim[1]*z + dim[0]*y + x)
+	-RLM 3D
+		to use include "rlm3D.h"
+		public functions:
+			RLM_3d(int x_rad, int y_rad, int z_rad, int x_step, int y_step, int z_step, int val_range, int n_threads)
+				Object Constructor.
+				x_rad: int, neighborhood radius in x direction
+				y_rad: int, neighborhood radius in y direction
+				z_rad: int, neighborhood radius in z direction
+				x_step: int, step to immediate neighbor in x direction
+				y_step: int, step to immediate neighbor in y direction
+				z_step: int, step to immediate neighbor in z direction
+				val_range: int, number of possible gray level values The algorithm will transform the data accordingly. Usually set to 64.
+				n_threads: int, number of threads to split the job
+			void computeFeatures(cv::Mat *src, int dim[3], int *mask)
+				computes 60 features per voxel.
+				src: pointer to cv::Mat structure that contains the 3D block of data.
+				dim: int Array with length 3. every value holds the dimensions of the data (dim[0]: number of voxel in x direction, dim[1]: number of voxel in y direction, dim[2]: number of voxel in z direction)
+				mask: pointer to int array. Every cell of the array corresponds to a voxel. If the value is 1, the algorithm will compute features for this voxel, if 0 it will not. In order to compute features for all voxels, all values of the array should be 1. The array is one dimensional. The position of an example voxel (x, y, z) in this array can be computed as following. index = dim[0]*dim[1]*z + dim[0]*y + x.
+				The size of the array should be dim[0]*dim[1]*dim[2].
+			cv::Mat getFeatures()
+				returns a cv::Mat with features for all voxels decided by the mask. The cv::Mat is two dimensional, the rows are voxels and columns features.
+				The correspondence of row in thi matrix and voxel coordinates (x, y, z) are given with the same formula of the mask index (row = dim[0]*dim[1]*z + dim[0]*y + x)
+	-FOS 3D
+		to use include "fos3D.h"
+		public functions:
+			FOS(int x_rad, int y_rad, int z_rad, int x_step, int y_step, int z_step, int val_range)
+				Object Constructor.
+				x_rad: int, neighborhood radius in x direction
+				y_rad: int, neighborhood radius in y direction
+				z_rad: int, neighborhood radius in z direction
+				x_step: int, step for calculating absolute gradient value in x direction (usually set to one, should be smaller than x_rad)
+				y_step: int, step for calculating absolute gradient value in y direction (usually set to one, should be smaller than y_rad)
+				z_step: int, step for calculating absolute gradient value in z direction (usually set to one, should be smaller than z_rad)
+				val_range: int, number of possible gray level values The algorithm will transform the data accordingly. Usually set to 64.
+			void computeFeatures(cv::Mat *src, int dim[3], int *mask)
+				computes 60 features per voxel.
+				src: pointer to cv::Mat structure that contains the 3D block of data.
+				dim: int Array with length 3. every value holds the dimensions of the data (dim[0]: number of voxel in x direction, dim[1]: number of voxel in y direction, dim[2]: number of voxel in z direction)
+				mask: pointer to int array. Every cell of the array corresponds to a voxel. If the value is 1, the algorithm will compute features for this voxel, if 0 it will not. In order to compute features for all voxels, all values of the array should be 1. The array is one dimensional. The position of an example voxel (x, y, z) in this array can be computed as following. index = dim[0]*dim[1]*z + dim[0]*y + x.
+				The size of the array should be dim[0]*dim[1]*dim[2].
+			cv::Mat getFeatures()
+				returns a cv::Mat with features for all voxels decided by the mask. The cv::Mat is two dimensional, the rows are voxels and columns features.
+				The correspondence of row in thi matrix and voxel coordinates (x, y, z) are given with the same formula of the mask index (row = dim[0]*dim[1]*z + dim[0]*y + x)
+	-K Means
+		to use include "my_kmeans.h"
+		public functions:
+			ParrallelKMeans(int num_thr, int max_itt, float thres, int dimensions, int init_tr, int att)
+				Object constructor.
+				num_thr: int, number of threads to split the clustering
+				max_itt: int, maximum number of iterations
+				thres: float, error function threshold to stop the procedure
+				dimensions: dimensionality of the data (number of features)
+				att: int, number of center initializations
+			double calculateClusteringBalance(double lambda, cv::Mat centers, cv::Mat data);
+				Calculates and returns clustering balance, given the data, the calculated centers and the lambda value of the clustering
+			double cluster(const cv::Mat &data, int k, cv::Mat &centers, cv::Mat &labels);
+				clusters the data and returns the lambda value of the clustering
+				data: cv::Mat, the data, in two dimensions, rows are the data points and columns the features
+				k: int, number of clusters
+				centers: cv::Mat in the beginning empty cv::Mat, at the end will contain the final best centers
+				labels: one dimensional cv::Mat, should be allocated manually. In the end will contain the cluster label of each data point
+	-Fuzzy C Means
+		to use include "FuzzyCMeans.h"
+		public functions:
+			FuzzyCMeans(int num_thr, float thres, int c, int dimensions, int nPoints, int fuzzyness)
+				Object constructor.
+				num_thr: int, number of threads to split the clustering
+				thres: float, error function threshold to stop the procedure
+				c: int, number of clusters
+				dimensions: dimensionality of the data (number of features)
+				nPoints: int, number of data points to be clustered
+				fuzzyness: int, fuzzyness o the algorithm, usually set to two. (1 -> no fuzzyness)
+			cluster(const cv::Mat &data, cv::Mat &centers)
+				clusters the data
+				data: cv::Mat, the data, in two dimensions, rows are the data points and columns the features
+				centers: cv::Mat in the beginning empty cv::Mat, at the end will contain the final best centers
+			cv::Mat getLabels()
+				returns a cv::Mat with computed cluster labels for every data point
+	-Mitra's et al. algorithm
+		to use include "mitra.h"
+		public functions:
+			MITRA(int n_threads, int k)
+				Object creator.
+				n_threads: int, number of threads to split the job
+				k: int, number of nearest neighbors
+			int select_features(cv::Mat &_data)
+				selects non redundant features given the data, returns the number of features kept.
+	-Mitra's et al. algorithm, Variation 1
+		to use include "mitra_var_1.h"
+		public functions:
+			MITRA(int n_threads, float threshold)
+				Object creator.
+				n_threads: int, number of threads to split the job
+				threshold: float, similarity threshold
+			int select_features(cv::Mat &_data)
+				selects non redundant features given the data, returns the number of features kept.
+	-Mitra's et al. algorithm, Variation 2
+		to use include "mitra_var_2.h"
+		public functions:
+			MITRA(int n_threads, float threshold)
+				Object creator.
+				n_threads: int, number of threads to split the job
+				threshold: float, similarity threshold
+			int select_features(cv::Mat &_data, cv::Mat &samples)
+				selects non redundant features given the data, returns the number of features kept.
+				samples: cv::Mat, the data points from which the entropy of the features is going to be calculated (part of _data matrix or complete _data matrix)
+	-RANK
+		to use include "rank.h"
+		public functions:
+			RANK(int n_threads, int d)
+				Object creator.
+				n_threads: int, number of threads to split the job
+				d: int, dimensionality of the data (number of features)
+			struct rankedFeature
+				structure with two values
+					int index - index of feature
+					long double value - rank of feature
+			getRankedFeatures(float *data, size_t dstep, int _num_points, std::vector<RANK::rankedFeature> &rankedList)
+				ranks the features
+				data: pointer to float array (gets the data as returned by cv::Mat.data)
+				d_step: number of positions till the next data point (from 2D cv::Mat can acquire with cv::Mat.step/sizeof(cv::Mat.data[0]))
+				num_points: int number of data points
+				rankedList std::vector of struct rankedFeatures. After execution will be filled with rankedFeature structures, one for each features, sorted by the ranking
+	-SRANK
+		to use include "sRank.h"
+		public functions:
+			SRANK(int n_threads, int d, float r, int s)
+				Object creator.
+				n_threads: int, number of threads to split the job
+				d: int, dimensionality of the data (number of features)
+				r: float, is the proportion of the data points used for each sample
+				s: int, number of random samples
+			struct rankedFeature
+				structure with two values
+					int index - index of feature
+					long double value - rank of feature
+			getRankedFeatures(cv::Mat &data, std::vector<RANK::rankedFeature> &rankedList)
+				ranks the features
+				data: cv::Mat, 2d array of the data
+				rankedList std::vector of struct rankedFeatures. After execution will be filled with rankedFeature structures, one for each features, sorted by the ranking
+	-Irrelevance Filter (Variation)
+		to use include "Irrelevancy_Filter.h"
+		public functions:
+			IFilter(int n_threads, float beta, int d, float r, int s)
+				Object creator.
+				n_threads: int, number of threads to split the job
+				beta: float, defines the proportion of the maximum distance in the dataset. expected cluster radius. Usually set to 0.1 - 0.2
+				d: int, dimensionality of the data (number of features)
+				r: float, is the proportion of the data points used for each sample
+				s: int, number of random samples
+			select_features(cv::Mat &_data)
+				computes weights of features given the data
+			transorm_data(cv::Mat &_data)
+				transforms the data with respect to the calculated weights
+			float *getWeights()
+				return a pointer to a float array, containing the calculated weights
+
+PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/home/peeth/Todor/opencv/install/lib/pkgconfig
